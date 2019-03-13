@@ -79,7 +79,6 @@ import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.SensorDat
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_LIGHT;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_MET;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_MODERATE;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_STEPS;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_VIGOROUS;
 
 public class MovisensService extends Service {
@@ -94,6 +93,7 @@ public class MovisensService extends Service {
     public final static String MOVISENS_STEP_COUNT = "step_count";
     public final static String MOVISENS_MET_LEVEL = "met_level";
     public final static String MOVISENS_MET = "met";
+    public final static String MOVISENS_TIMESTEMP = "timestemp";
     public final static String MOVISENS_BODY_POSITION = "body_position";
     public final static String MOVISENS_MOVEMENT_ACCELERATION = "movement_acceleration";
     public final static String MOVISENS_CONNECTION_STATUS = "connection_status";
@@ -115,7 +115,14 @@ public class MovisensService extends Service {
 
     public void broadcastData(String key, String value) {
         Intent dataIntent = new Intent(MOVISENS_INTENT_NAME);
-        dataIntent.putExtra(key, value);
+        dataIntent.putExtra(key,value);
+        sendBroadcast(dataIntent);
+    }
+
+
+    public void broadcastData(String key, HashMap<String,String> value) {
+        Intent dataIntent = new Intent(MOVISENS_INTENT_NAME);
+        dataIntent.putExtra(key,value);
         sendBroadcast(dataIntent);
     }
 
@@ -692,12 +699,14 @@ public class MovisensService extends Service {
 
                     if (MovisensCharacteristics.STEPS_BUFFERED.equals(uuid)) {
                         StepsBuffered stepsBuffered = new StepsBuffered(data);
-                        for (Integer stepCount : stepsBuffered.getSteps()) {
+
+                        sm.context.splitAndSaveSteps(stepsBuffered);
+                        /*for (Integer stepCount : stepsBuffered.getSteps()) {
                             String stepString = stepCount.toString();
                             Log.d("step", stepString);
                             sm.context.splitAndSaveSteps(stepsBuffered);
                             sm.context.broadcastData(MOVISENS_STEP_COUNT, stepString);
-                        }
+                        }*/
                     }
 
                     if (MovisensCharacteristics.MET_LEVEL_BUFFERED.equals(uuid)) {
@@ -831,11 +840,20 @@ public class MovisensService extends Service {
             DateTime timestamp = new DateTime((stepsBuffered.getTime().getTime() / 1000 + (long) (1 / stepsBuffered.getSamplerate() * i)) * 1000);
             int steps = stepsBuffered.getSteps()[i];
 
-            ContentValues values = new ContentValues();
+            HashMap<String,String> values= new HashMap<String,String>();
+
+
+           /* ContentValues values = new ContentValues();
             values.put(MovisensData.TrackingData.COL_TIMESTAMP, TimeFormatUtil.getStringFromDate(timestamp));
             values.put(COL_STEPS, steps);
             values.put(COL_UPDATED, TimeFormatUtil.getDateString());
-            Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
+            Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);*/
+
+           // broadcastData(MOVISENS_STEP_COUNT, );
+
+            values.put(MOVISENS_TIMESTEMP,TimeFormatUtil.getStringFromDate(timestamp));
+            values.put(MOVISENS_STEP_COUNT,steps+"");
+            broadcastData(MOVISENS_STEP_COUNT,values);
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Steps: " + stepsBuffered.getSteps()[i]);
         }
