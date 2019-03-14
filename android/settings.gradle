@@ -1,1 +1,5 @@
 rootProject.name = 'movisens_flutter'
+
+
+include ':movisenslibrary'
+project(':movisenslibrary').projectDir = new File('/Users/deku/Documents/development/REAFEL/movisens_flutter_plugin/movisens_flutter/example/movisenslibrary')

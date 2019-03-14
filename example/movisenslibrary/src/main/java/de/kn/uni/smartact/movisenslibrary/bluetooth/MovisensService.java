@@ -13,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.ParcelUuid;
@@ -25,7 +24,7 @@ import com.movisens.movisensgattlib.MovisensCharacteristics;
 import com.movisens.movisensgattlib.MovisensServices;
 import com.movisens.movisensgattlib.attributes.AgeFloat;
 import com.movisens.movisensgattlib.attributes.BatteryLevelBuffered;
-import com.movisens.movisensgattlib.attributes.BodyPosition;
+import com.movisens.movisensgattlib.attributes.BodyPositionBuffered;
 import com.movisens.movisensgattlib.attributes.DataAvailable;
 import com.movisens.movisensgattlib.attributes.EnumSensorLocation;
 import com.movisens.movisensgattlib.attributes.HrMeanBuffered;
@@ -33,7 +32,7 @@ import com.movisens.movisensgattlib.attributes.HrvIsValidBuffered;
 import com.movisens.movisensgattlib.attributes.MeasurementEnabled;
 import com.movisens.movisensgattlib.attributes.MetBuffered;
 import com.movisens.movisensgattlib.attributes.MetLevelBuffered;
-import com.movisens.movisensgattlib.attributes.MovementAcceleration;
+import com.movisens.movisensgattlib.attributes.MovementAccelerationBuffered;
 import com.movisens.movisensgattlib.attributes.RmssdBuffered;
 import com.movisens.movisensgattlib.attributes.SensorLocation;
 import com.movisens.movisensgattlib.attributes.StepsBuffered;
@@ -72,14 +71,9 @@ import static de.kn.uni.smartact.movisenslibrary.bluetooth.BLEConnectionHandler.
 import static de.kn.uni.smartact.movisenslibrary.bluetooth.BLEConnectionHandler.EXTRA_TAG;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.LoggingData.COL_MESSAGE;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.LoggingData.COL_TAG;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.SensorData.COL_BATTERY;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.SensorData.COL_CONNECTED;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.SensorData.COL_FIRMWARE;
 import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.SensorData.COL_UPDATED;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_LIGHT;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_MET;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_MODERATE;
-import static de.kn.uni.smartact.movisenslibrary.database.MovisensData.TrackingData.COL_VIGOROUS;
 
 public class MovisensService extends Service {
 
@@ -93,7 +87,7 @@ public class MovisensService extends Service {
     public final static String MOVISENS_STEP_COUNT = "step_count";
     public final static String MOVISENS_MET_LEVEL = "met_level";
     public final static String MOVISENS_MET = "met";
-    public final static String MOVISENS_TIMESTEMP = "timestemp";
+    public final static String MOVISENS_TIMESTAMP = "timestamp";
     public final static String MOVISENS_BODY_POSITION = "body_position";
     public final static String MOVISENS_MOVEMENT_ACCELERATION = "movement_acceleration";
     public final static String MOVISENS_CONNECTION_STATUS = "connection_status";
@@ -120,11 +114,11 @@ public class MovisensService extends Service {
     }
 
 
-    public void broadcastData(String key, HashMap<String,String> value) {
+   /* public void broadcastData(String key, HashMap<String,String> value) {
         Intent dataIntent = new Intent(MOVISENS_INTENT_NAME);
         dataIntent.putExtra(key,value);
         sendBroadcast(dataIntent);
-    }
+    }*/
 
     public static boolean isServiceRunning(Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -492,14 +486,15 @@ public class MovisensService extends Service {
                     MovisensCharacteristics.MET_LEVEL_BUFFERED.getUuid(), "MET_LEVEL_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
 
-            BleUtils.enableCharacteristicNotification(
-                    MovisensCharacteristics.BODY_POSITION.getUuid(), "BODY_POSITION",
+            BleUtils.enableCharacteristicIndication(
+                    MovisensCharacteristics.BODY_POSITION_BUFFERED.getUuid(), "BODY_POSITION_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
 
-            BleUtils.enableCharacteristicNotification(
-                    MovisensCharacteristics.MOVEMENT_ACCELERATION.getUuid(), "MOVEMENT_ACCELERATION",
+            BleUtils.enableCharacteristicIndication(
+                    MovisensCharacteristics.MOVEMENT_ACCELERATION_BUFFERED.getUuid(), "MOVEMENT_ACCELERATION_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
         }
+
 
 
         BluetoothGattService markerService = BleUtils.findService(MovisensServices.MARKER.getUuid(), gattServices);
@@ -649,39 +644,24 @@ public class MovisensService extends Service {
 
                     if (MovisensCharacteristics.HR_MEAN_BUFFERED.equals(uuid)) {
                         HrMeanBuffered hr = new HrMeanBuffered(data);
-
                         sm.context.splitAndSaveHR(hr);
-
                     }
 
                     //HRV
 
                     if (MovisensCharacteristics.HRV_IS_VALID_BUFFERED.equals(uuid)) {
-
                         HrvIsValidBuffered hrvIsValidBuffered = new HrvIsValidBuffered(data);
-
                         sm.context.splitAndSaveHRV(hrvIsValidBuffered);
-
-                       /* while(hrvIsValidBuffered.getData().iterator().hasNext()) {
-                            Object element = hrvIsValidBuffered.getData().iterator().next();
-                            Log.d("hrv_data", hrvIsValidBuffered.getData().iterator().next().toString());
-                        }*/
                     }
 
                     if(MovisensCharacteristics.RMSSD_BUFFERED.equals(uuid)){
-
                         RmssdBuffered rmssdBuffered= new RmssdBuffered(data);
-
                         sm.context.splitAndSaveRMSSD(rmssdBuffered);
-
                     }
 
                     if (MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.equals(uuid)) {
                         BatteryLevelBuffered battery = new BatteryLevelBuffered(data);
                         sm.context.splitAndSaveLastBatteryLevel(battery);
-                        String level = "" + battery.getLevel()[0];
-                        Log.d(TAG, "BATTERY: " + level);
-                        sm.context.broadcastData(MOVISENS_BATTERY_LEVEL, level);
                     }
 
                     if (Characteristics.FIRMWARE_REVISION_STRING.equals(uuid)) {
@@ -701,52 +681,34 @@ public class MovisensService extends Service {
                         StepsBuffered stepsBuffered = new StepsBuffered(data);
 
                         sm.context.splitAndSaveSteps(stepsBuffered);
-                        /*for (Integer stepCount : stepsBuffered.getSteps()) {
-                            String stepString = stepCount.toString();
-                            Log.d("step", stepString);
-                            sm.context.splitAndSaveSteps(stepsBuffered);
-                            sm.context.broadcastData(MOVISENS_STEP_COUNT, stepString);
-                        }*/
                     }
 
                     if (MovisensCharacteristics.MET_LEVEL_BUFFERED.equals(uuid)) {
-                        double[][] levelBufferedArrays = new MetLevelBuffered(data).getValues();
-                        for (double[] levelBuffered : levelBufferedArrays) {
-                            HashMap<String, String> metLevels = new HashMap<>();
-                            metLevels.put("sedentary", levelBuffered[0] + "");
-                            metLevels.put("light", levelBuffered[1] + "");
-                            metLevels.put("moderate", levelBuffered[2] + "");
-                            metLevels.put("vigorous", levelBuffered[3] + "");
 
-                            String metLevelJson = metLevels.toString();
-                            sm.context.broadcastData(MOVISENS_MET_LEVEL, metLevelJson);
+                        MetLevelBuffered metLevelBuffered= new MetLevelBuffered(data);
 
-                            Log.d(TAG, "MET LEVEL: " + metLevelJson);
-                        }
+                        sm.context.splitAndSaveMetLevel(metLevelBuffered);
+
                     }
 
                     if (MovisensCharacteristics.MET_BUFFERED.equals(uuid)) {
-                        String met = new MetBuffered(data).toString();
-                        Log.d(TAG, "MET: " + met);
-                        sm.context.broadcastData(MOVISENS_MET, met);
+
+                        MetBuffered metBuffered= new MetBuffered(data);
+                        sm.context.splitAndSaveMet(metBuffered);
                     }
 
                     if (MovisensCharacteristics.DATA_AVAILABLE.equals(uuid)) {
                         sm.context.log(TAG, "Data available");
                     }
 
-                    if (MovisensCharacteristics.BODY_POSITION.equals(uuid)) {
-                        BodyPosition bodyPosition = new BodyPosition(data);
-                        String position = bodyPosition.getBodyPosition().toString();
-                        Log.d("body_postion", position);
-                        sm.context.broadcastData(MOVISENS_BODY_POSITION, position);
+                    if (MovisensCharacteristics.BODY_POSITION_BUFFERED.equals(uuid)) {
+                        BodyPositionBuffered bodyPositionBuffered = new BodyPositionBuffered(data);
+                        sm.context.splitAndSaveBodyPosition(bodyPositionBuffered);
                     }
 
-                    if (MovisensCharacteristics.MOVEMENT_ACCELERATION.equals(uuid)) {
-                        MovementAcceleration movementAcceleration = new MovementAcceleration(data);
-                        String acceleration = movementAcceleration.getMovementAcceleration().toString();
-                        Log.d("movement_acceleration", acceleration);
-                        sm.context.broadcastData(MOVISENS_MOVEMENT_ACCELERATION, acceleration);
+                    if (MovisensCharacteristics.MOVEMENT_ACCELERATION_BUFFERED.equals(uuid)) {
+                        MovementAccelerationBuffered movementAccelerationBuffered = new MovementAccelerationBuffered(data);
+                        sm.context.splitAndSaveMovementAcceleration(movementAccelerationBuffered);
                     }
                 }
             }
@@ -754,11 +716,58 @@ public class MovisensService extends Service {
     }
 
 
+    /**
+     * Function to separate Timestamp from the string and additionally gives the current
+     * sensor data for  MovementAcceleration
+     *
+     * @param movementAccelerationBuffered MovementAccelerationBuffered class from the sensor
+     */
+
+    private void splitAndSaveMovementAcceleration(MovementAccelerationBuffered movementAccelerationBuffered) {
+
+
+        String[] splits = movementAccelerationBuffered.toString().split("[\\r\\n]+");
+
+        for (int i = 0; i < splits.length; i++) {
+
+            DateTime timestamp = new DateTime((movementAccelerationBuffered.getTime().getTime() / 1000 + (long) (1 / movementAccelerationBuffered.getSamplerate() * i)) * 1000);
+           // Double bodyPosition[] = movementAccelerationBuffered.getMovementAcceleration();
+
+
+            broadcastData(MOVISENS_MOVEMENT_ACCELERATION,movementAccelerationBuffered.getMovementAcceleration()[i].toString() );
+
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "MOVEMENT_ACCELERATION" + movementAccelerationBuffered.getMovementAcceleration()[i]);
+        }
+
+
+    }
 
 
 
     /**
-     * Function to seperate Timestamp from the string and additionally gives the current
+     * Function to separate Timestamp from the string and additionally gives the current
+     * sensor data for Body Position
+     *
+     * @param bodyPositionBuffered BodyPositionBuffered class from the sensor
+     */
+    private void splitAndSaveBodyPosition(BodyPositionBuffered bodyPositionBuffered) {
+
+        String[] splits = bodyPositionBuffered.toString().split("[\\r\\n]+");
+
+        for (int i = 0; i < splits.length; i++) {
+
+            DateTime timestamp = new DateTime((bodyPositionBuffered.getTime().getTime() / 1000 + (long) (1 / bodyPositionBuffered.getSamplerate() * i)) * 1000);
+           // Enum bodyPosition[] = bodyPositionBuffered.getBodyPosition();
+
+            broadcastData(MOVISENS_BODY_POSITION, bodyPositionBuffered.getBodyPosition()[i].toString());
+
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "BODY_POSITION: " + bodyPositionBuffered.getBodyPosition()[i]);
+        }
+    }
+
+
+    /**
+     * Function to separate Timestamp from the string and additionally gives the current
      * sensor data for HRV
      *
      * @param rmssdBuffered RmssdBuffered class from the sensor
@@ -771,7 +780,6 @@ public class MovisensService extends Service {
       for (int i = 0; i < splits.length; i++) {
 
           DateTime timestamp = new DateTime((rmssdBuffered.getTime().getTime() / 1000 + (long) (1 / rmssdBuffered.getSamplerate() * i)) * 1000);
-          Double hrv[] = rmssdBuffered.getRmssd();
 
           log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "RMSSD: " + rmssdBuffered.getRmssd()[i]);
       }
@@ -782,10 +790,10 @@ public class MovisensService extends Service {
 
 
     /**
-     * Function to seperate Timestamp from the string and additionally gives  the current
+     * Function to separate Timestamp from the string and additionally gives  the current
      * sensor data about whether ECG data is good enough for calculating HRV
      *
-     * @param hrvIsValidBuffered StepsBuffered class from the sensor
+     * @param hrvIsValidBuffered HrvIsValidBuffered class from the sensor
      */
     private void splitAndSaveHRV(HrvIsValidBuffered hrvIsValidBuffered) {
 
@@ -794,9 +802,9 @@ public class MovisensService extends Service {
         for (int i = 0; i < splits.length; i++) {
 
             DateTime timestamp = new DateTime((hrvIsValidBuffered.getTime().getTime() / 1000 + (long) (1 / hrvIsValidBuffered.getSamplerate() * i)) * 1000);
-            Boolean hrv[] = hrvIsValidBuffered.getHrvIsValid();
 
-            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HRV: " + hrvIsValidBuffered.getHrvIsValid()[i]+ " leanth " +hrv.length);
+
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HRV: " + hrvIsValidBuffered.getHrvIsValid()[i]);
         }
 
 
@@ -804,10 +812,10 @@ public class MovisensService extends Service {
 
 
     /**
-     * Function to seperate Timestamp from the string and additionally save it into the current
+     * Function to separate Timestamp from the string and additionally save it into the current
      * sensor data
      *
-     * @param hrMeanBuffered StepsBuffered class from the sensor
+     * @param hrMeanBuffered HrMeanBuffered class from the sensor
      */
 
 
@@ -818,8 +826,6 @@ public class MovisensService extends Service {
         for (int i = 0; i < splits.length; i++) {
 
             DateTime timestamp = new DateTime((hrMeanBuffered.getTime().getTime() / 1000 + (long) (1 / hrMeanBuffered.getSamplerate() * i)) * 1000);
-            int hr = hrMeanBuffered.getHrMean()[i];
-
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HR: " + hrMeanBuffered.getHrMean()[i]);
         }
 
@@ -828,7 +834,7 @@ public class MovisensService extends Service {
 
 
     /**
-     * Function to seperate Timestamp from the string and additionally save it into the current
+     * Function to separate Timestamp from the string and additionally save it into the current
      * sensor data
      *
      * @param stepsBuffered StepsBuffered class from the sensor
@@ -851,16 +857,20 @@ public class MovisensService extends Service {
 
            // broadcastData(MOVISENS_STEP_COUNT, );
 
-            values.put(MOVISENS_TIMESTEMP,TimeFormatUtil.getStringFromDate(timestamp));
+           /* values.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
             values.put(MOVISENS_STEP_COUNT,steps+"");
-            broadcastData(MOVISENS_STEP_COUNT,values);
+            broadcastData(MOVISENS_STEP_COUNT,values);*/
+
+           //  String value= TimeFormatUtil.getStringFromDate(timestamp).toString() +"Steps";
+
+            broadcastData(MOVISENS_STEP_COUNT,stepsBuffered.getSteps()[i].toString());
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Steps: " + stepsBuffered.getSteps()[i]);
         }
     }
 
     /**
-     * Function to seperate Timestamp from the string and additionally save it into the current
+     * Function to separate Timestamp from the string and additionally save it into the current
      * sensor data
      *
      * @param metLevelBuffered MetLevelBuffered class from sensor
@@ -873,21 +883,21 @@ public class MovisensService extends Service {
             Short light = metLevelBuffered.getLight()[i];
             Short vigorous = metLevelBuffered.getVigorous()[i];
             Short moderate = metLevelBuffered.getModerate()[i];
-
-            ContentValues values = new ContentValues();
-            values.put(MovisensData.TrackingData.COL_TIMESTAMP, TimeFormatUtil.getStringFromDate(timestamp));
-            values.put(COL_LIGHT, light);
-            values.put(COL_MODERATE, moderate);
-            values.put(COL_VIGOROUS, vigorous);
-            values.put(COL_UPDATED, TimeFormatUtil.getDateString());
-            Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
+            Short sedentary=  metLevelBuffered.getSedentary()[i];
+            HashMap<String, String> metLevels = new HashMap<>();
+            metLevels.put("sedentary", sedentary.toString());
+            metLevels.put("light", light.toString());
+            metLevels.put("moderate", moderate.toString());
+            metLevels.put("vigorous", vigorous.toString());
+            String metLevelJson = metLevels.toString();
+            broadcastData(MOVISENS_MET_LEVEL, metLevelJson);
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " + light + " Vigorous: " + vigorous + " Moderate: " + moderate);
         }
     }
 
     /**
-     * Function to seperate Timestamp from the string and additionally save it into the current
+     * Function to separate Timestamp from the string and additionally save it into the current
      * sensor data
      *
      * @param metBuffered MetBuffered class from the sensor
@@ -898,16 +908,11 @@ public class MovisensService extends Service {
         for (int i = 0; i < metValues.length; i++) {
             DateTime timestamp = new DateTime((metBuffered.getTime().getTime() / 1000 + (long) (1 / metBuffered.getSamplerate() * i)) * 1000);
             Double met = metBuffered.getMet()[i];
-
-            ContentValues values = new ContentValues();
-            values.put(MovisensData.TrackingData.COL_TIMESTAMP, TimeFormatUtil.getStringFromDate(timestamp));
-            values.put(COL_MET, met);
-            values.put(COL_UPDATED, TimeFormatUtil.getDateString());
-            Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
-
+            broadcastData(MOVISENS_MET, metBuffered.getMet()[i].toString());
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Met: " + metBuffered.getMet()[i]);
         }
     }
+
 
     /**
      * Function to get last battery level and additionally save it into the current
@@ -916,15 +921,15 @@ public class MovisensService extends Service {
      * @param batteryBuffered BatteryLevelBuffered class from the sensor
      */
     private void splitAndSaveLastBatteryLevel(BatteryLevelBuffered batteryBuffered) {
-        Double[] batteryValues = batteryBuffered.getLevel();
 
-        ContentValues values = new ContentValues();
-        values.put(COL_BATTERY, batteryValues[0]);
-        values.put(COL_UPDATED, TimeFormatUtil.getDateString());
-        getContentResolver().insert(MovisensData.SensorData.SENSORDATA_URI, values);
+        String[] splits = batteryBuffered.toString().split("[\\r\\n]+");
 
-        for (Double value : batteryValues) {
-            log(TAG, "Battery: " + value);
+        for (int i = 0; i < splits.length; i++) {
+
+            DateTime timestamp = new DateTime((batteryBuffered.getTime().getTime() / 1000 + (long) (1 / batteryBuffered.getSamplerate() * i)) * 1000);
+
+            broadcastData(MOVISENS_BATTERY_LEVEL, batteryBuffered.getLevel()[i].toString());
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "BATTERY: " + batteryBuffered.getLevel()[i]);
         }
     }
 
