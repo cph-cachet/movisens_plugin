@@ -91,6 +91,10 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler, Method
 
             String  hr= intent.getStringExtra(MovisensService.MOVISENS_HR);
 
+            String  isHrvValid= intent.getStringExtra(MovisensService.MOVISENS_IS_HRV_VALID);
+
+            String  hrv= intent.getStringExtra(MovisensService.MOVISENS_HRV);
+
 
 
             String met = intent.getStringExtra(MovisensService.MOVISENS_MET);
@@ -107,6 +111,11 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler, Method
 
             if(hr!=null)
                 data.put(MovisensService.MOVISENS_HR,hr);
+            if(isHrvValid!=null)
+                data.put(MovisensService.MOVISENS_IS_HRV_VALID,isHrvValid);
+
+            if(hrv!=null)
+                data.put(MovisensService.MOVISENS_HRV,hrv);
 
             if (batteryLevel != null)
                 data.put(MovisensService.MOVISENS_BATTERY_LEVEL, batteryLevel);

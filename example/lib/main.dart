@@ -47,8 +47,8 @@ class _MovisensAppState extends State<MovisensApp> {
 
     print(" onData_flutter: "+ "$d");
     setState(() {
-      movisensEvents.add(d);
-      logManager.writeLog('$d');
+     // movisensEvents.add(d);
+      //logManager.writeLog('$d');
     });
   }
 

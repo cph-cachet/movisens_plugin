@@ -787,6 +787,13 @@ public class MovisensService extends Service {
 
           DateTime timestamp = new DateTime((rmssdBuffered.getTime().getTime() / 1000 + (long) (1 / rmssdBuffered.getSamplerate() * i)) * 1000);
 
+          HashMap<String, String> hrv = new HashMap<>();
+
+          hrv.put(MOVISENS_HRV,rmssdBuffered.getRmssd()[i].toString());
+          hrv.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+          broadcastData(MOVISENS_HRV,hrv.toString());
+
           log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "RMSSD: " + rmssdBuffered.getRmssd()[i]);
       }
 
@@ -809,6 +816,13 @@ public class MovisensService extends Service {
 
             DateTime timestamp = new DateTime((hrvIsValidBuffered.getTime().getTime() / 1000 + (long) (1 / hrvIsValidBuffered.getSamplerate() * i)) * 1000);
 
+
+            HashMap<String, String> isHrvValid = new HashMap<>();
+
+            isHrvValid.put(MOVISENS_IS_HRV_VALID,hrvIsValidBuffered.getHrvIsValid()[i].toString());
+            isHrvValid.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+            broadcastData(MOVISENS_IS_HRV_VALID,isHrvValid.toString());
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HRV: " + hrvIsValidBuffered.getHrvIsValid()[i]);
         }
@@ -834,10 +848,8 @@ public class MovisensService extends Service {
             DateTime timestamp = new DateTime((hrMeanBuffered.getTime().getTime() / 1000 + (long) (1 / hrMeanBuffered.getSamplerate() * i)) * 1000);
 
             HashMap<String, String> hr = new HashMap<>();
-
             hr.put(MOVISENS_HR,hrMeanBuffered.getHrMean()[i].toString());
             hr.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
-
             broadcastData(MOVISENS_HR,hr.toString());
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HR: " + hrMeanBuffered.getHrMean()[i]);
