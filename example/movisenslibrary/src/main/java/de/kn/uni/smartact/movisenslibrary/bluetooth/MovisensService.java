@@ -92,6 +92,13 @@ public class MovisensService extends Service {
     public final static String MOVISENS_MOVEMENT_ACCELERATION = "movement_acceleration";
     public final static String MOVISENS_CONNECTION_STATUS = "connection_status";
 
+    public final static String MOVISENS_HR = "hr";
+    public final static String MOVISENS_IS_HRV_VALID = "is_hrv_valid";
+    public final static String MOVISENS_HRV = "hrv";
+
+
+
+
 
     private final static int NOTIFICATION_ID = 1377;
     private final static int IDLE_CHECK_INTERVAL = 30000;
@@ -679,7 +686,6 @@ public class MovisensService extends Service {
 
                     if (MovisensCharacteristics.STEPS_BUFFERED.equals(uuid)) {
                         StepsBuffered stepsBuffered = new StepsBuffered(data);
-
                         sm.context.splitAndSaveSteps(stepsBuffered);
                     }
 
@@ -826,6 +832,14 @@ public class MovisensService extends Service {
         for (int i = 0; i < splits.length; i++) {
 
             DateTime timestamp = new DateTime((hrMeanBuffered.getTime().getTime() / 1000 + (long) (1 / hrMeanBuffered.getSamplerate() * i)) * 1000);
+
+            HashMap<String, String> hr = new HashMap<>();
+
+            hr.put(MOVISENS_HR,hrMeanBuffered.getHrMean()[i].toString());
+            hr.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+            broadcastData(MOVISENS_HR,hr.toString());
+
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "HR: " + hrMeanBuffered.getHrMean()[i]);
         }
 
@@ -892,7 +906,7 @@ public class MovisensService extends Service {
             String metLevelJson = metLevels.toString();
             broadcastData(MOVISENS_MET_LEVEL, metLevelJson);
 
-            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " + light + " Vigorous: " + vigorous + " Moderate: " + moderate);
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " + light + " Vigorous: " + vigorous + "Sedentary: " +sedentary +" Moderate: " + moderate);
         }
     }
 

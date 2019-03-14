@@ -89,6 +89,7 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler, Method
             String stepCount = intent.getStringExtra(MovisensService.MOVISENS_STEP_COUNT);
             String timeStamp = intent.getStringExtra(MovisensService.MOVISENS_TIMESTAMP);
 
+            String  hr= intent.getStringExtra(MovisensService.MOVISENS_HR);
 
 
 
@@ -103,6 +104,9 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler, Method
             HashMap<String, Object> data = new HashMap<>();
 
            //  data.put(MovisensService.MOVISENS_TIMESTAMP,timeStamp);
+
+            if(hr!=null)
+                data.put(MovisensService.MOVISENS_HR,hr);
 
             if (batteryLevel != null)
                 data.put(MovisensService.MOVISENS_BATTERY_LEVEL, batteryLevel);
