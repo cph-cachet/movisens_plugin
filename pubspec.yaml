@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  path_provider: ^0.5.0
+  path_provider: ^0.4.1
 # The following section is specific to Flutter.
 flutter:
   plugin:
