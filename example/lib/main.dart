@@ -31,9 +31,9 @@ class MovisensApp extends StatefulWidget {
 
 class _MovisensAppState extends State<MovisensApp> {
   Movisens _movisens;
-  StreamSubscription<MovisensDataPoint> _subscription;
+  StreamSubscription<String> _subscription;
   LogManager logManager = new LogManager();
-  List<MovisensDataPoint> movisensEvents = [];
+  List<String> movisensEvents = [];
   String address = 'unknown', name = 'unknown';
   int weight, height, age;
 
@@ -43,12 +43,12 @@ class _MovisensAppState extends State<MovisensApp> {
     startListening();
   }
 
-  void onData(MovisensDataPoint d) {
+  void onData(String d) {
 
     print(" onData_flutter: "+ "$d");
     setState(() {
-     // movisensEvents.add(d);
-      //logManager.writeLog('$d');
+      movisensEvents.add(d);
+      logManager.writeLog('$d');
     });
   }
 
@@ -93,7 +93,7 @@ class _MovisensAppState extends State<MovisensApp> {
   }
 
   _buildRow(int index) {
-    MovisensDataPoint d = movisensEvents[index];
+    String d = movisensEvents[index];
     return new Container(
         child: new ListTile(
           leading: Icon(_getIcon(d)),
@@ -106,15 +106,14 @@ class _MovisensAppState extends State<MovisensApp> {
             new BoxDecoration(border: new Border(bottom: new BorderSide())));
   }
 
-  IconData _getIcon(MovisensDataPoint d) {
-    if (d is MovisensTapMarker) return Icons.touch_app;
-    if (d is MovisensMovementAcceleration) return Icons.arrow_downward;
-    if (d is MovisensBodyPosition) return Icons.accessibility;
-    if (d is MovisensMet) return Icons.cached;
-    if (d is MovisensStepCount) return Icons.directions_walk;
-    if (d is MovisensBatteryLevel) return Icons.battery_charging_full;
-    if (d is MovisensStatus)
-      return Icons.bluetooth_connected;
+  IconData _getIcon(String d) {
+   if (d.contains("TapMarker")) return Icons.touch_app;
+    if (d .contains("MovementAcceleration")) return Icons.arrow_downward;
+   if (d.contains("BodyPosition")) return Icons.accessibility;
+    if (d.contains("Met")) return Icons.cached;
+    if (d.contains("StepCount")) return Icons.directions_walk;
+    if (d.contains("BatteryLevel")) return Icons.battery_charging_full;
+    if (d.contains("ConnectionStatus")) return Icons.bluetooth_connected;
     else
       return Icons.device_unknown;
   }

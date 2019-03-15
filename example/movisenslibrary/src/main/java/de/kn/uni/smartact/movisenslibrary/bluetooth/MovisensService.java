@@ -643,8 +643,20 @@ public class MovisensService extends Service {
                     /// TAPS!!!
                     if (MovisensCharacteristics.TAP_MARKER.equals(uuid)) {
                         TapMarker marker = new TapMarker(data);
+
+                        DateTime timestamp= new DateTime();
+
+                        TimeFormatUtil.getStringFromDate(timestamp);
+
+                        Log.d("TapDataTime",TimeFormatUtil.getStringFromDate(timestamp));
                         String markerData = "" + Calendar.getInstance().getTimeInMillis();
-                        sm.context.broadcastData(MOVISENS_TAP_MARKER, markerData);
+
+                        HashMap<String,String> tapMarker= new HashMap<String,String>();
+
+                        tapMarker.put(MOVISENS_TAP_MARKER, marker.getTapMarker().toString());
+                        tapMarker.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+                        sm.context.broadcastData(MOVISENS_TAP_MARKER, tapMarker.toString());
                     }
 
                     //HR
@@ -739,8 +751,12 @@ public class MovisensService extends Service {
             DateTime timestamp = new DateTime((movementAccelerationBuffered.getTime().getTime() / 1000 + (long) (1 / movementAccelerationBuffered.getSamplerate() * i)) * 1000);
            // Double bodyPosition[] = movementAccelerationBuffered.getMovementAcceleration();
 
+            HashMap<String, String> movementAcceleration = new HashMap<>();
 
-            broadcastData(MOVISENS_MOVEMENT_ACCELERATION,movementAccelerationBuffered.getMovementAcceleration()[i].toString() );
+            movementAcceleration.put(MOVISENS_MOVEMENT_ACCELERATION,movementAccelerationBuffered.getMovementAcceleration()[i].toString() );
+            movementAcceleration.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+            broadcastData(MOVISENS_MOVEMENT_ACCELERATION,movementAcceleration.toString() );
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "MOVEMENT_ACCELERATION" + movementAccelerationBuffered.getMovementAcceleration()[i]);
         }
@@ -765,7 +781,11 @@ public class MovisensService extends Service {
             DateTime timestamp = new DateTime((bodyPositionBuffered.getTime().getTime() / 1000 + (long) (1 / bodyPositionBuffered.getSamplerate() * i)) * 1000);
            // Enum bodyPosition[] = bodyPositionBuffered.getBodyPosition();
 
-            broadcastData(MOVISENS_BODY_POSITION, bodyPositionBuffered.getBodyPosition()[i].toString());
+            HashMap<String, String> bodyPosition = new HashMap<>();
+            bodyPosition.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+            bodyPosition.put(MOVISENS_BODY_POSITION, bodyPositionBuffered.getBodyPosition()[i].toString());
+
+            broadcastData(MOVISENS_BODY_POSITION, bodyPosition.toString());
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "BODY_POSITION: " + bodyPositionBuffered.getBodyPosition()[i]);
         }
@@ -872,24 +892,12 @@ public class MovisensService extends Service {
             DateTime timestamp = new DateTime((stepsBuffered.getTime().getTime() / 1000 + (long) (1 / stepsBuffered.getSamplerate() * i)) * 1000);
             int steps = stepsBuffered.getSteps()[i];
 
-            HashMap<String,String> values= new HashMap<String,String>();
+            HashMap<String,String> stepCount= new HashMap<String,String>();
 
+            stepCount.put(MOVISENS_STEP_COUNT,stepsBuffered.getSteps()[i].toString());
+            stepCount.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
 
-           /* ContentValues values = new ContentValues();
-            values.put(MovisensData.TrackingData.COL_TIMESTAMP, TimeFormatUtil.getStringFromDate(timestamp));
-            values.put(COL_STEPS, steps);
-            values.put(COL_UPDATED, TimeFormatUtil.getDateString());
-            Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);*/
-
-           // broadcastData(MOVISENS_STEP_COUNT, );
-
-           /* values.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
-            values.put(MOVISENS_STEP_COUNT,steps+"");
-            broadcastData(MOVISENS_STEP_COUNT,values);*/
-
-           //  String value= TimeFormatUtil.getStringFromDate(timestamp).toString() +"Steps";
-
-            broadcastData(MOVISENS_STEP_COUNT,stepsBuffered.getSteps()[i].toString());
+            broadcastData(MOVISENS_STEP_COUNT,stepCount.toString());
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Steps: " + stepsBuffered.getSteps()[i]);
         }
@@ -915,8 +923,10 @@ public class MovisensService extends Service {
             metLevels.put("light", light.toString());
             metLevels.put("moderate", moderate.toString());
             metLevels.put("vigorous", vigorous.toString());
+            metLevels.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
             String metLevelJson = metLevels.toString();
-            broadcastData(MOVISENS_MET_LEVEL, metLevelJson);
+            broadcastData(MOVISENS_MET_LEVEL
+                    , metLevelJson);
 
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " + light + " Vigorous: " + vigorous + "Sedentary: " +sedentary +" Moderate: " + moderate);
         }
@@ -933,8 +943,14 @@ public class MovisensService extends Service {
 
         for (int i = 0; i < metValues.length; i++) {
             DateTime timestamp = new DateTime((metBuffered.getTime().getTime() / 1000 + (long) (1 / metBuffered.getSamplerate() * i)) * 1000);
-            Double met = metBuffered.getMet()[i];
-            broadcastData(MOVISENS_MET, metBuffered.getMet()[i].toString());
+
+            HashMap<String,String> met= new HashMap<String,String>();
+
+            met.put(MOVISENS_MET,metBuffered.getMet()[i].toString());
+            met.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+
+
+            broadcastData(MOVISENS_MET, met.toString());
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Met: " + metBuffered.getMet()[i]);
         }
     }
@@ -954,7 +970,11 @@ public class MovisensService extends Service {
 
             DateTime timestamp = new DateTime((batteryBuffered.getTime().getTime() / 1000 + (long) (1 / batteryBuffered.getSamplerate() * i)) * 1000);
 
-            broadcastData(MOVISENS_BATTERY_LEVEL, batteryBuffered.getLevel()[i].toString());
+            HashMap<String,String> battery= new HashMap<String,String>();
+
+            battery.put(MOVISENS_BATTERY_LEVEL,batteryBuffered.getLevel()[i].toString());
+            battery.put(MOVISENS_TIMESTAMP,TimeFormatUtil.getStringFromDate(timestamp));
+            broadcastData(MOVISENS_BATTERY_LEVEL, battery.toString());
             log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "BATTERY: " + batteryBuffered.getLevel()[i]);
         }
     }

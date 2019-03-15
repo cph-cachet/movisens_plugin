@@ -69,233 +69,186 @@ String timeStampHHMMSS(DateTime timeStamp) {
 /// Keys for Movisens data points
 const String TAP_MARKER = 'tap_marker',
     BATTERY_LEVEL = 'battery_level',
+    TIMESTAMP= 'timestamp',
     STEP_COUNT = 'step_count',
     MET = 'met',
     MET_LEVEL = 'met_level',
     BODY_POSITION = 'body_position',
     MOVEMENT_ACCELERATION = 'movement_acceleration',
-    CONNECTION_STATUS = 'connection_status';
+    CONNECTION_STATUS = 'connection_status',
+    HR='hr',
+    IS_HRV_VALID='is_hrv_valid',
+    HRV='hrv';
 
-/// Generic Movisens data-point which all concrete data-points inherit from. Each data-point has a timestamp.
-abstract class MovisensDataPoint {
-  DateTime _timeStamp;
-
-  MovisensDataPoint() {
-    /// Log timestamp of data point creation
-    _timeStamp = DateTime.now();
-  }
-
-  DateTime get timeStamp => _timeStamp;
-}
-
-/// Metabolic buffered level, holds met level values for a sedentary, light and moderate state.
-class MovisensMetLevel extends MovisensDataPoint {
-  double _sedentary, _light, _moderate, _vigorous;
-
-  MovisensMetLevel(String metLevelString) {
-    String metLevelJson = metLevelString.replaceAllMapped(
-        new RegExp(r'([a-z]+)\=([\d.]+)'), (g) => '"${g[1]}":"${g[2]}"');
-    Map<String, dynamic> metLevel = jsonDecode(metLevelJson);
-
-    _sedentary = double.parse(metLevel['sedentary']);
-    _light = double.parse(metLevel['light']);
-    _moderate = double.parse(metLevel['moderate']);
-    _vigorous = double.parse(metLevel['vigorous']);
-  }
-
-  double get sedentary => _sedentary;
-
-  double get light => _light;
-
-  double get moderate => _moderate;
-
-  double get vigorous => _vigorous;
-
-  @override
-  String toString() {
-    return 'MetLevel: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'sedentary: $sedentary, '
-        'light: $light, '
-        'moderate: $moderate, '
-        'vigorous: $vigorous'
-        '}';
-  }
-}
-
-/// Battery level of the Movisens device, in percent (%)
-class MovisensBatteryLevel extends MovisensDataPoint {
-  double _batteryLevel;
-
-  MovisensBatteryLevel(String batteryString) {
-    _batteryLevel = double.parse(batteryString);
-  }
-
-  double get batteryLevel => _batteryLevel;
-
-  @override
-  String toString() {
-    return 'BatteryLevel: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'battery_level: $batteryLevel'
-        '}';
-  }
-}
-
-/// Step count monitored by the Movisens device
-class MovisensStepCount extends MovisensDataPoint {
-  int _stepCount;
-
-  MovisensStepCount(String value) {
-    _stepCount = int.parse(value);
-  }
-
-  int get stepCount => _stepCount;
-
-  @override
-  String toString() {
-    return 'StepCount: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'step_count: $stepCount'
-        '}';
-  }
-}
-
-/// A generic class which only contains a timestamp, for when the movisens device was tapped.
-class MovisensTapMarker extends MovisensDataPoint {
-  @override
-  String toString() {
-    return 'TapMarker: {time: ${timeStampHHMMSS(timeStamp)}}';
-  }
-}
-
-class MovisensMet extends MovisensDataPoint {
-  double _met;
-
-  MovisensMet(dynamic value) {
-    String met = value;
-    _met = double.parse(met.split(',').removeLast());
-  }
-
-  double get met => _met;
-
-  @override
-  String toString() {
-    return 'MET: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'met: $met'
-        '}';
-  }
-}
-
-/// Movisens body-position, which depends on the sensor location
-class MovisensBodyPosition extends MovisensDataPoint {
-  String _bodyPosition;
-
-  MovisensBodyPosition(this._bodyPosition);
-
-  String get bodyPosition => _bodyPosition;
-
-  @override
-  String toString() {
-    return 'BodyPosition: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'body_position: $bodyPosition'
-        '}';
-  }
-}
-
-/// Accelerometer measure of the Movisens device
-class MovisensMovementAcceleration extends MovisensDataPoint {
-  double _movementAcceleration;
-
-  MovisensMovementAcceleration(String value) {
-    _movementAcceleration = double.parse(value);
-  }
-
-  double get movementAcceleration => _movementAcceleration;
-
-  @override
-  String toString() {
-    return 'MovementAcceleration: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'movement_acceleration: $_movementAcceleration'
-        '}';
-  }
-}
-
-/// Accelerometer measure of the Movisens device
-class MovisensStatus extends MovisensDataPoint {
-  String _connectionStatus;
-
-  MovisensStatus(String _connectionStatus);
-
-  String get connectionStatus => _connectionStatus;
-
-  @override
-  String toString() {
-    return 'ConnectionStatus: {'
-        'time: ${timeStampHHMMSS(timeStamp)}, '
-        'connection_status: $_connectionStatus'
-        '}';
-  }
-}
 
 /// Factory function for converting a generic object sent through the platform channel into a concrete [MovisensDataPoint] object.
-MovisensDataPoint parseDataPoint(dynamic javaMap) {
+String parseDataPoint(dynamic javaMap) {
   Map<String, dynamic> data = Map<String, dynamic>.from(javaMap);
-  String _batteryLevel =
-  data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
+
+
+
+  String _hr = data.containsKey(HR) ? data[HR] : null;
+  String _isHrvValid = data.containsKey(IS_HRV_VALID) ? data[IS_HRV_VALID] : null;
+  String _hrv = data.containsKey(HRV) ? data[HRV] : null;
+  String _batteryLevel = data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
   String _tapMarker = data.containsKey(TAP_MARKER) ? data[TAP_MARKER] : null;
   String _stepCount = data.containsKey(STEP_COUNT) ? data[STEP_COUNT] : null;
   String _met = data.containsKey(MET) ? data[MET] : null;
   String _metLevel = data.containsKey(MET_LEVEL) ? data[MET_LEVEL] : null;
-  String _bodyPosition =
-  data.containsKey(BODY_POSITION) ? data[BODY_POSITION] : null;
-  String _movementAcceleration = data.containsKey(MOVEMENT_ACCELERATION)
-  ? data[MOVEMENT_ACCELERATION]
-      : null;
+  String _bodyPosition = data.containsKey(BODY_POSITION) ? data[BODY_POSITION] : null;
+  String _movementAcceleration = data.containsKey(MOVEMENT_ACCELERATION) ? data[MOVEMENT_ACCELERATION] : null;
   String _connectionStatus = data.containsKey(CONNECTION_STATUS) ? data[CONNECTION_STATUS] : null;
 
   print(_connectionStatus);
 
+  if(_hr!=null) return  movisensHR(_hr);
+
+  if(_hrv!=null) return movisensHRV(_hrv);
+
   if (_batteryLevel != null) {
-    return new MovisensBatteryLevel(_batteryLevel);
+    return  movisensBatteryLevel(_batteryLevel);
   }
   if (_tapMarker != null) {
-    return new MovisensTapMarker();
+    return movisensTapMarker(_tapMarker);
   }
+
   if (_stepCount != null) {
-    return new MovisensStepCount(_stepCount);
+    return movisensStepCount(_stepCount);
   }
-  if (_met != null) {
-    return new MovisensMet(_met);
-  }
-  if (_metLevel != null) {
-    return new MovisensMetLevel(_metLevel);
-  }
-  if (_bodyPosition != null) {
-    return new MovisensBodyPosition(_bodyPosition);
-  }
+
   if (_movementAcceleration != null) {
-    return new MovisensMovementAcceleration(_movementAcceleration);
+    return movisensMovementAcceleration(_movementAcceleration);
+  }
+
+  if (_bodyPosition != null) {
+    return movisensBodyPosition(_bodyPosition);
+  }
+
+  if(_isHrvValid!=null) return  movisensIsHrvValid(_isHrvValid);
+
+  if (_metLevel != null) {
+    return  movisensMetLevel(_metLevel);
+  }
+
+  if (_met != null) {
+    return movisensMet(_met);
   }
   if (_connectionStatus != null && _connectionStatus != 'null') {
-    return new MovisensStatus(_connectionStatus);
+    return MovisensStatus(_connectionStatus);
   }
   return null;
   }
+
+
+/// Deviec connection status with timeStamp
+String MovisensStatus(String connectionStatus) {
+  String _connectionStatusJson;
+  _connectionStatusJson =  connectionStatus.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-\_]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "ConnectionStatus="+_connectionStatusJson;
+
+}
+
+String movisensMet(String met) {
+  String _metJson;
+  _metJson =  met.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "Met="+_metJson;
+}
+
+
+/// Metabolic buffered level, holds met level values for a sedentary, light and moderate state.
+String movisensMetLevel(String metLevel) {
+
+  String _metLevelJson;
+  _metLevelJson =  metLevel.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "MetLevel="+_metLevelJson;
+
+}
+
+
+/// Informs if Signal is ok for HRV calculation
+String movisensIsHrvValid(String isHrvValid) {
+
+  String _isHrvValidJson;
+  _isHrvValidJson =  isHrvValid.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "IsHrvValid="+_isHrvValidJson;
+}
+
+/// Body the body position Json
+String movisensBodyPosition(String bodyPosition) {
+
+  String _bodyPositionJson;
+  _bodyPositionJson =  bodyPosition.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "BodyPosition="+_bodyPositionJson;
+}
+
+/// Returns 3D movement Acceleration Json
+String movisensMovementAcceleration(String movementAcceleration) {
+  String _movementAccelerationJson;
+  _movementAccelerationJson =  movementAcceleration.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "MovementAcceleration="+_movementAccelerationJson;
+}
+
+
+///StepCount Json
+String movisensStepCount(String stepCount) {
+
+  String _stepCountJson;
+  _stepCountJson =  stepCount.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "StepCount="+_stepCountJson;
+}
+
+String movisensTapMarker(String tapMarker) {
+
+  String _tapMarkerJson;
+  _tapMarkerJson =  tapMarker.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "TapMarker="+_tapMarkerJson;
+}
+
+String movisensBatteryLevel(String batteryLevel) {
+
+  String _batteryLevelJson;
+  _batteryLevelJson =  batteryLevel.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "BatteryLevel="+_batteryLevelJson;
+}
+
+String movisensHR(String hr)
+{
+
+  String _hrJson =  hr.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "HR="+_hrJson;
+}
+
+
+String movisensHRV(String hrv)
+{
+  String _hrvJson;
+  _hrvJson =  hrv.replaceAllMapped(
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+  return "HRV="+_hrvJson;
+}
+
+
 
 /// The main plugin class which establishes a [MethodChannel] and an [EventChannel].
 class Movisens {
   MethodChannel _methodChannel = MethodChannel('movisens.method_channel');
   EventChannel _eventChannel = EventChannel('movisens.event_channel');
-  Stream<MovisensDataPoint> _movisensStream;
+  Stream<String> _movisensStream;
   UserData _userData;
 
   Movisens(this._userData);
 
-  Stream<MovisensDataPoint> get movisensStream {
+  Stream<String> get movisensStream {
     if (Platform.isAndroid) {
       if (_movisensStream == null) {
         Map<String, dynamic> args = {'user_data': _userData.asMap};
