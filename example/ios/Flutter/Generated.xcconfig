@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=/Users/deku/Documents/development/flutter
-FLUTTER_APPLICATION_PATH=/Users/deku/Documents/development/POC/test_movi/flutter-plugins/packages/movisens_flutter/example
+FLUTTER_APPLICATION_PATH=/Users/deku/Documents/development/REAFEL/movisens_flutter_plugin/movisens_flutter/example
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
 SYMROOT=${SOURCE_ROOT}/../build/ios
