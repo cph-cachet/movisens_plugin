@@ -204,7 +204,7 @@ Map<String,dynamic> movisensBodyPosition(String bodyPosition) {
 
   String _bodyPositionJson;
   _bodyPositionJson =  bodyPosition.replaceAllMapped(
-      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-]+)'), (g) => '"${g[1]}":"${g[2]}"');
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-\_]+)'), (g) => '"${g[1]}":"${g[2]}"');
 
 
   Map<String,dynamic> bodyPositionMap= new Map() ;
