@@ -144,7 +144,7 @@ Map<String,dynamic> parseDataPoint(dynamic javaMap) {
 Map<String,dynamic> movisensStatus(String connectionStatus) {
   String _connectionStatusJson;
   _connectionStatusJson =  connectionStatus.replaceAllMapped(
-      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:-\_]+)'), (g) => '"${g[1]}":"${g[2]}"');
+      new RegExp(r'([a-z\_]+)\=([a-z\d\s.\s\s:\_-]+)'), (g) => '"${g[1]}":"${g[2]}"');
 
   Map<String,dynamic> statusMap= new Map() ;
 
