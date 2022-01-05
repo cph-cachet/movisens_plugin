@@ -1,5 +1,7 @@
-# movisens_flutter_plugin
+# Movisens Flutter Plugin
+
 [![pub package](https://img.shields.io/pub/v/movisens_flutter.svg)](https://pub.dartlang.org/packages/movisens_flutter)
+
 A plugin for connecting and collecting data from a Movisens sensor. **This plugin excelusively works for Android.**
 
 ## Install
